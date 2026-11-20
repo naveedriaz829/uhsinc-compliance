@@ -1,0 +1,3 @@
+-- US 11134 - DEV validation queries (read-only)
+-- Add SELECT-only validation queries after confirming the DEV environment.
+-- Do not execute the full original SQL script as a validation step.
