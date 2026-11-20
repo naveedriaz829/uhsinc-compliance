@@ -52,10 +52,11 @@ if @FINAL_QUERY_ONLY = 'Y' goto FINAL_QUERY
 set nocount off
 
 -- Load QNXT Benefits to SBSC Code table .. ------------------------------------------------------------
--- drop table if exists CMSReporting.QNXT_Benefits_2025
-if OBJECT_ID('tempdb..CMSReporting.QNXT_Benefits_2025') is null 
+-- US11134: active load targets CMSReporting.QNXT_Benefits_2026 (truncate/insert below).
+-- drop table if exists CMSReporting.QNXT_Benefits_2026
+if OBJECT_ID('tempdb..CMSReporting.QNXT_Benefits_2026') is null 
 
-if ( 0 = ( select count(1) from CMSReporting.QNXT_Benefits_2025 ) )
+if ( 0 = ( select count(1) from CMSReporting.QNXT_Benefits_2026 ) )
 begin
 	
 	raiserror('Loading #Benefits temp table ..', 0, 1 ) with nowait;
@@ -103,7 +104,7 @@ begin
 
 	truncate table Medicare_Custom.CMSReporting.QNXT_Benefits_2026
 
-	raiserror('Loading CMSReporting.QNXT_Benefits_2025 by UBID ..', 0, 1 ) with nowait;
+	raiserror('Loading CMSReporting.QNXT_Benefits_2026 by UBID ..', 0, 1 ) with nowait;
 
 	insert into CMSReporting.QNXT_Benefits_2026
 	select op.OrgPolicyId, rtrim(pp.rateid) [RateId]
@@ -137,7 +138,7 @@ begin
 	order by [OrgPolicyId], [RateId], rtrim(bene.BenefitID), 
 	[Type], [SBSC_Code], pp.planid, isnull(rtrim(bsrv.svcmin), ''), isnull(rtrim(bsrv.svcmax), '')
 
-	select 'ALL 2' [Query], count(1) from CMSReporting.QNXT_Benefits_2025
+	select 'ALL 2' [Query], count(1) from CMSReporting.QNXT_Benefits_2026
 	-- order by op.OrgPolicyId, [MinProcCode], [MaxProcCode], [Type], [SBSC_Code]
 
 	--raiserror('Indexing CMSReporting.QNXT_Benefits_2025 by UBID ..', 0, 1 ) with nowait;
@@ -158,7 +159,7 @@ begin
 	--	create index ix_tmp_QNXT_Benefits_2025_OrgPolicyId_RateId_BenefitId on CMSReporting.QNXT_Benefits_2025 ([OrgPolicyId], [RateId], [PlanId], [BenefitId])
 		--create index ix_tmp_QNXT_Benefits_2025_OrgPolicyId_RateId_BenefitId on CMSReporting.QNXT_Benefits_2025 ([OrgPolicyId], [RateId], [PlanId], [BenefitId])
 
-	raiserror('Loading CMSReporting.QNXT_Benefits_2025 for OON ..', 0, 1 ) with nowait;
+	raiserror('Loading CMSReporting.QNXT_Benefits_2026 for OON ..', 0, 1 ) with nowait;
 	insert 	into CMSReporting.QNXT_Benefits_2026 with (TABLOCK)
 		select op.OrgPolicyId, rtrim(pp.rateid) [RateId]
 			, pp.planid
@@ -194,11 +195,11 @@ and bsrv.planid = bp.planid
 
 	set nocount off
 
-	select 'OON 2' [Query], count(1) from CMSReporting.QNXT_Benefits_2025 where [SBSC_Code] = 'OON'
+	select 'OON 2' [Query], count(1) from CMSReporting.QNXT_Benefits_2026 where [SBSC_Code] = 'OON'
 
 	drop table if exists #Benefit
 
-end -- OBJECT_ID('tempdb..CMSReporting.QNXT_Benefits_2025') is null 
+end -- OBJECT_ID('tempdb..CMSReporting.QNXT_Benefits_2026') is null 
 
 
 
@@ -923,7 +924,7 @@ from (
     ) m
     group by m.PolicyNum, m.SBSC_Code, m.MemberOOP
 ) clm
-join [Medicare_Custom].[CMSReporting].[SupplementalBenefitUtilizationAndCosts_2025] supp on supp.[SBSC_Code] = clm.SBSC_Code
+join [Medicare_Custom].[CMSReporting].[SupplementalBenefitUtilizationAndCosts_2026] supp on supp.[SBSC_Code] = clm.SBSC_Code
 and supp.PolicyNumber = clm.PolicyNum collate SQL_Latin1_General_CP1_CI_AS
 join [CMSReporting].[SBSC_Code] cod on cod.SBSC_BaseCode = supp.[PBP Category] and cod.DataSource = @DATASOURCE
 
@@ -1309,7 +1310,7 @@ cross apply (	select enrl.[PolicyNum]
 							--and enrl.EffDate  <= clm.StartServiceDate
 							--and enrl.TermDate >= clm.StartServiceDate
 							and enrl.PolicyNum = supp.[PolicyNumber] collate SQL_Latin1_General_Pref_CP1_CI_AS
-							left join CMSReporting.QNXT_Benefits_2025 [bene2] on 1=1
+							left join CMSReporting.QNXT_Benefits_2026 [bene2] on 1=1
 							and bene2.orgpolicyid = enrl.orgpolicyid collate SQL_Latin1_General_CP1_CI_AS
 							and bene2.RateId = enrl.rateid collate SQL_Latin1_General_CP1_CI_AS
 							and bene2.[BenefitID] = clmdtl.[BenefitID] collate SQL_Latin1_General_CP1_CI_AS
@@ -1422,7 +1423,7 @@ LEFT JOIN (
     GROUP BY clm.GroupNumber, codext.SBSC_Code
 ) dt
 ON grp.OldCode = dt.SBSC_Code
-JOIN [CMSReporting].[SupplementalBenefitUtilizationAndCosts_2025] supp
+JOIN [CMSReporting].[SupplementalBenefitUtilizationAndCosts_2026] supp
 ON dt.GroupNumber = CONCAT(supp.Contract, '-', supp.PBP)
 AND dt.SBSC_Code = supp.[PBP Category]
 AND grp.OfferType = supp.[How is the SB offered?];
@@ -1477,14 +1478,14 @@ LEFT JOIN (
                 SELECT enrollid, effdate, termdate
                 FROM PlanData_Prod.dbo.EnrollCoverage
                 WHERE coveragecodeid = 'DENTALBUYUP'
-                  AND effdate <= @END_DATE   --'2025-12-31'
-                  AND termdate >= @START_DATE    --'2025-01-01'
+                  AND effdate <= @END_DATE   -- historical literal was '2025-12-31'; uses @END_DATE
+                  AND termdate >= @START_DATE    -- historical literal was '2025-01-01'; uses @START_DATE
             ) zz ON tt.enrollid = zz.enrollid
       )
     GROUP BY clm.GroupNumber, codext.SBSC_Code
 ) dt
 ON grp.OldCode = dt.SBSC_Code
-JOIN [CMSReporting].[SupplementalBenefitUtilizationAndCosts_2025] supp
+JOIN [CMSReporting].[SupplementalBenefitUtilizationAndCosts_2026] supp
 ON dt.GroupNumber = CONCAT(supp.Contract, '-', supp.PBP)
 AND dt.SBSC_Code = supp.[PBP Category]
 AND grp.OfferType = supp.[How is the SB offered?];
@@ -1492,7 +1493,8 @@ AND grp.OfferType = supp.[How is the SB offered?];
 
 
 /*Updating transportation values from the interim transportation table. This is a standalone table with reqd. values since Alivi has been discontinued. 
-Jimmy's team handles all the work related to cab support. We received Lyft data from them so the values here are from Lyft services for 2025 */
+Jimmy's team handles all the work related to cab support. Historical note: Lyft values for 2025 lived in Transportation_2025.
+US11134: confirm whether a CY2026 Transportation_* table exists before renaming the join below. */
 
 UPDATE supp
 SET 

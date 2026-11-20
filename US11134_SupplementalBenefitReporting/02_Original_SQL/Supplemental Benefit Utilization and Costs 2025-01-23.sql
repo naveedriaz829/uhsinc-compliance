@@ -24,7 +24,7 @@ declare @DATASOURCE varchar(30)
 --declare @DATA_SOURCE varchar(100) = 'QNXT_CLM'
 declare @ROUNDED_TIMESTAMP datetime = datetimefromparts(datepart(year, getdate()), datepart(month, getdate()), datepart(day, getdate()), datepart(hour, getdate()), 0, 0, 0)
 declare @FOREVER date = '2078-12-31'
-declare @REPORTING_YEAR int = 2026
+declare @REPORTING_YEAR int = 2025
 declare @START_DATE	date = datefromparts(@REPORTING_YEAR,  1,  1)
 declare @START_DATE_STR8 char(8) = format(@START_DATE, 'yyyyMMdd')
 declare @START_DATE_STR_AMPM varchar(20) = format(@START_DATE, 'M/d/yyyy h:mm:ss tt')
